@@ -9,4 +9,4 @@ const MenuItem: React.FC<MenuItemProps> = ({text, onClick}) => {
     </div>
 }
 
-export default MenuItem
+export default React.memo(MenuItem)

@@ -1,11 +1,11 @@
-import React, { useState, useCallback } from "react";
+import React, {useState, useCallback, useMemo} from "react";
 import { MainTableProps } from "@/app/types/props/MainTableProps";
 import { useData } from "@/app/hooks/useData";
-import { isNumeric } from "@/app/utils/helpers";
 import SearchBar from "./SearchBar";
 import TableHeader from "./TableHeader";
 import TableBody from "./TableBody";
 import Pagination from "@/app/components/table/Pagination";
+import {debounce} from "next/dist/server/utils";
 
 function MainTable<T>({
   tableHeader,
@@ -21,13 +21,17 @@ function MainTable<T>({
         search: ''
     });
 
-    const handleSearch = useCallback(() => {
+    const debouncedHandleSearch = useMemo(() => debounce(() => {
         setParams(prev => ({ ...prev, search: inputValue, page: 1 }));
-    }, [inputValue]);
+    }, 500), [inputValue]);
+
+    const handleSearch = useCallback(() => {
+        debouncedHandleSearch();
+    }, [debouncedHandleSearch]);
 
     const handlePageChange = useCallback((page: number) => {
         setParams(prev => ({ ...prev, page }));
-    }, []);
+    }, [params.page]);
 
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setInputValue(e.target.value);
@@ -49,27 +53,10 @@ function MainTable<T>({
         error
     } = useData<T>(dataKey, params.page, params.search);
 
-    if (isLoading) return <div className={'self-center'}> Loading... </div>;
     if (isError) return <div className={'text-red-500 self-center'}>
         <p>ERROR: {error?.message} </p>
         <p>{error.response?.data?.message} </p>
     </div>;
-
-    const sortedData: T[] | undefined = data?.results.sort((a, b) => {
-        // Nqmam nervi
-        /* eslint-disable  @typescript-eslint/no-explicit-any */
-        let aValue: any = a[sortField];
-        let bValue: any = b[sortField];
-
-        if (isNumeric(`${aValue}`.trim()) && isNumeric(`${bValue}`.trim())) {
-            aValue = parseFloat(`${aValue}`.trim());
-            bValue = parseFloat(`${bValue}`.trim());
-        }
-
-        if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
-        return 0;
-    });
 
     return (
         <div className={'flex flex-col gap-10'}>
@@ -86,11 +73,17 @@ function MainTable<T>({
                     sortOrder={sortOrder}
                     onSort={handleSort}
                 />
-                <TableBody
-                    data={sortedData || []}
+                {isLoading ?
+                    <tbody className={'self-center'}>
+                        <tr><td>Loading...</td></tr>
+                    </tbody> :
+                    <TableBody<T>
+                    data={data?.results || []}
                     columns={columns}
+                    sortField={sortField}
+                    sortOrder={sortOrder}
                     initialSort={initialSort}
-                />
+                />}
             </table>
             <Pagination
                 count={data?.count || 0}

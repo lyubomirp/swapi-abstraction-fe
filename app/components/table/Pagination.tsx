@@ -22,4 +22,4 @@ const Pagination: React.FC<PaginationProps> = ({count, page, prev, next, pageCha
     </>
 }
 
-export default Pagination
+export default React.memo(Pagination)

@@ -82,7 +82,7 @@ const Main = () => {
         }
     }, [dataType]);
 
-    return <div className={'flex flex-col w-9/12 justify-start mt-5 min-h-screen'}>
+    return <div className={'flex flex-col w-10/12 justify-start mt-5 min-h-screen'}>
         <QueryClientProvider client={queryClient}>
             {renderContent()}
         </QueryClientProvider>

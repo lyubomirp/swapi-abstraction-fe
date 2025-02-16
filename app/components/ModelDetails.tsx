@@ -4,6 +4,7 @@ import { useModelStore } from "@/app/store/useModelStore";
 import { useShallow } from "zustand/react/shallow";
 import { ModelTypeState } from "@/app/types/state/ModelTypeState";
 import TitleFetcher from "@/app/components/TitleFetcher";
+import Link from "next/link";
 
 const ModelDetails = () => {
     const { model, clearModel } = useModelStore(
@@ -48,6 +49,13 @@ const ModelDetails = () => {
                 ) : null;
             }
         }
+
+        if (key.toLowerCase() === 'url') {
+            if (value) {
+                return <Link className={'underline'} target={'_blank'} href={value}>{value} - External</Link>;
+            }
+        }
+
         return value || ' - ';
     }, [resolveKey, separateNumber]);
 
